@@ -5,5 +5,6 @@ const { passwordValidation, emailValidation } = require('../middleware/signupVal
 
 router.post('/signup', [passwordValidation, emailValidation], authController.signupController);
 router.post('/login', authController.loginController);
+router.get('/refresh', authController.refreshAccessToken);
 
 module.exports = router

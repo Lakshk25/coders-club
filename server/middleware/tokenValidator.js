@@ -14,7 +14,7 @@ module.exports = async (req, res, next) => {
         req._id = decoded._id;
         next();
     } catch (error) {
-        console.log(error);
+        console.log('middleware error',error);
         return res.send(failure(401, "Invalid access Key"));
     }
 }

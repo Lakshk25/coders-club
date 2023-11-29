@@ -2,7 +2,7 @@ const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken')
 const {success, failure} = require('../utils/responseWrapper');
-const { validationResult } = require('express-validator');
+const { validationResult, cookie } = require('express-validator');
 
 const signupController = async (req, res) => {
     try{
@@ -55,8 +55,16 @@ const loginController = async (req, res) => {
 
         //generate access token when logged in
         const accessToken = generateAccessToken({_id: user._id});
+        const refreshToken = generateRefreshToken({
+            _id: user._id,
+        })
 
-        return res.send(success(201, {accessToken}));
+
+        res.cookie('jwt', refreshToken, {
+            httpOnly: true,
+            secure: true
+        })
+        return res.send(success(201, accessToken));
     } catch (error) {
         console.log(error);
         return res.send(failure(401, {error}));
@@ -66,7 +74,7 @@ const loginController = async (req, res) => {
 const generateAccessToken = (data) => {
     try{
         const token = jwt.sign(data, process.env.ACCESS_TOKEN_PRIVATE_KEY, {
-            expiresIn: '1y',
+            expiresIn: '10m',
         })
         return token;
     }catch(error){
@@ -74,7 +82,43 @@ const generateAccessToken = (data) => {
     }
 }
 
+// to refresh accessToken after every 10 min
+const refreshAccessToken = async (req, res) => {
+    const cookies = req.cookies;
+    if(!cookies.jwt)
+        return res.send(failure(401, "Refresh token in cookie is required"));
+
+    const refreshToken = cookies.jwt;
+
+    try{
+        const decoded = jwt.verify(
+            refreshToken,
+            process.env.REFRESH_TOKEN_PRIVATE_KEY
+        );
+        
+        const _id = decoded._id;
+        const accessToken = generateAccessToken({_id});
+        return res.send(success(201, accessToken));
+    }catch(error){
+        console.log('error in refresh ',error);
+        return res.send(failure(401, "Invalid refresh token"));
+    }
+}
+
+// to generate refreshToken which is used to refresh accessToken
+const generateRefreshToken = (data) => {
+    try{
+        const token = jwt.sign(data, process.env.REFRESH_TOKEN_PRIVATE_KEY, {
+            expiresIn: '1y'
+        });
+        return token;
+    }catch(error){
+        console.log(error);
+    }
+}
+
 module.exports = {
     loginController,
-    signupController
+    signupController,
+    refreshAccessToken
 }

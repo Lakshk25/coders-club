@@ -1,0 +1,13 @@
+.home{
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction:column;
+    justify-content:space-around;
+    align-items: center;
+    background-color: rgb(213, 147, 147);
+    h1{
+        color: green;
+        align-self: flex-start;
+    }
+}

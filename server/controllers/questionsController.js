@@ -81,7 +81,7 @@ const getAllQuestion = async (req, res) => {
         const lLQuestions = await LinkedListQues.find({
             owner: user
         })
-        return res.send(success(200, {...questions, arrayQuestions, lLQuestions}));
+        return res.send(success(200, {...questions,arrayQuestions, lLQuestions}));
     }catch(error){
         return res.send(failure(501, error));
     }
